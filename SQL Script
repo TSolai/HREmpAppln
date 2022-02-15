@@ -1,0 +1,230 @@
+
+CREATE TABLE [dbo].[tblDepartment](
+	[DepartmentId] [int] IDENTITY(1,1) NOT NULL,
+	[DepartmentName] [varchar](50) NOT NULL 
+	
+ CONSTRAINT [PK_tblDepartment] PRIMARY KEY CLUSTERED 
+(
+	[DepartmentId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+  
+--insert into [dbo].[tblDepartment] values ('Sales')
+--insert into [dbo].[tblDepartment] values ('HR')
+--insert into [dbo].[tblDepartment] values ('Accounts')
+--insert into [dbo].[tblDepartment] values ('Support')
+--insert into [dbo].[tblDepartment] values ('Admin')
+
+ --select * from [dbo].[tblDepartment] 
+
+
+Create proc [dbo].[usp_GetAllDepartment]
+as
+
+BEGIN
+Select 0 [DepartmentId], 'Please Select' [DepartmentName]
+union
+SELECT [DepartmentId], [DepartmentName] from tblDepartment
+end
+Go
+
+exec  [dbo].[usp_GetAllDepartment]
+
+ 
+CREATE TABLE [dbo].[tblEmployee](
+	[EmployeeNumber] [nvarchar](10)  NOT NULL,
+	[FirstName] [nvarchar](50) NOT NULL,
+	[LastName] [nvarchar](50) NOT NULL,
+	[DateofBirth] [date] NOT NULL,
+	[DepartmentId] [int] NOT NULL,
+	[Address] [nvarchar](100) NULL,
+	[City] [nvarchar](50) NULL,
+	[isDeleted] [bit] NULL,
+ CONSTRAINT [PK_tblEmployee] PRIMARY KEY CLUSTERED 
+(
+	[EmployeeNumber] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[tblEmployee] ADD  DEFAULT ((0)) FOR [isDeleted]
+GO
+
+
+
+
+create proc [dbo].[usp_GetAllEmployeeDet]
+as
+
+BEGIN 
+Select [tblEmployee].*, tblDepartment.DepartmentName from dbo.[tblEmployee]
+inner join 
+tblDepartment on [tblEmployee].[DepartmentId] = tblDepartment.[DepartmentId]
+end
+
+go
+
+exec     [dbo].[usp_GetAllEmployeeDet]
+
+
+create proc [dbo].[usp_EmployeeUpdate]
+(@EmployeeNumber [nvarchar](10), @FirstName nvarchar(50)
+      ,@LastName nvarchar(50)
+      ,@DateofBirth date
+      ,@DepartmentId int
+      ,@Address nvarchar(100)
+      ,@City nvarchar(50)
+      ,@isDeleted bit)
+as
+
+BEGIN 
+ 
+UPDATE [dbo].[tblEmployee]
+   SET [FirstName] = @FirstName 
+      ,[LastName] = @LastName 
+	  ,[DateofBirth] = @DateofBirth 
+      ,[DepartmentId] = @DepartmentId
+      ,[Address] = @Address
+      ,[City] = @City
+      ,[isDeleted] = @isDeleted
+ WHERE EmployeeNumber = @EmployeeNumber
+
+
+end
+go
+
+create proc [dbo].[usp_EmployeeDelete]
+(@EmployeeNumber [nvarchar](10) )
+as
+
+BEGIN 
+ 
+UPDATE [dbo].[tblEmployee]
+   SET  [isDeleted] = 1
+ WHERE EmployeeNumber = @EmployeeNumber
+
+
+end
+go
+
+--insert into [dbo].[tblDepartment] values ('Please Select')
+--insert into [dbo].[tblDepartment] values ('Sales')
+--insert into [dbo].[tblDepartment] values ('HR')
+--insert into [dbo].[tblDepartment] values ('Accounts')
+--insert into [dbo].[tblDepartment] values ('Support')
+--insert into [dbo].[tblDepartment] values ('Admin')
+
+CREATE TABLE [dbo].[tblDepartment](
+	[DepartmentId] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [varchar](50) NOT NULL 
+	
+ CONSTRAINT [PK_tblDepartment] PRIMARY KEY CLUSTERED 
+(
+	[DepartmentId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+   
+ 
+
+create proc [dbo].[usp_EmployeeInsert]
+      (
+	  @EmployeeNumber [nvarchar](10)
+	  ,@FirstName nvarchar(50)
+      ,@LastName nvarchar(50)
+      ,@DateofBirth date
+      ,@DepartmentId int
+      ,@Address nvarchar(100)
+      ,@City nvarchar(50)
+	  ,@EmployeeNumberOut int out)
+as
+BEGIN 
+set @EmployeeNumberOut = 0
+ INSERT INTO [dbo].[tblEmployee]
+           ([EmployeeNumber]
+		   ,[FirstName]
+           ,[LastName]
+           ,[DateofBirth]
+           ,[DepartmentId]
+           ,[Address]
+           ,[City]
+           ,[isDeleted])
+     VALUES
+           (@EmployeeNumber
+		   ,@FirstName
+           ,@LastName 
+		   ,@DateofBirth 
+           ,@DepartmentId 
+		   ,@Address 
+           ,@City 
+           ,0 )
+
+
+IF @@ERROR <> 0   
+    BEGIN          
+	set @EmployeeNumberOut = -1 
+    END  
+ 
+end
+
+go
+
+DECLARE	 @EmployeeNumberOut int 
+
+EXEC  [dbo].[usp_EmployeeInsert]
+		@EmployeeNumber = N'Sales001',
+		@FirstName = N'One',
+		@LastName = N'Onee',
+		@DateofBirth = '02/12/1985',
+		@DepartmentId = 1,
+		@Address = N'Address1',
+		@City = N'City1',
+		@EmployeeNumberOut = @EmployeeNumberOut OUTPUT
+
+SELECT	@EmployeeNumberOut  
+DECLARE	 @EmployeeNumberOut int 
+EXEC  [dbo].[usp_EmployeeInsert]
+		@EmployeeNumber = N'Sales002',
+		@FirstName = N'Two',
+		@LastName = N'Twoo',
+		@DateofBirth = '02/Feb/1985',
+		@DepartmentId = 1,
+		@Address = N'Address2',
+		@City = N'City2',
+		@EmployeeNumberOut = @EmployeeNumberOut OUTPUT
+
+ SELECT	@EmployeeNumberOut  
+
+
+
+ DECLARE	 @EmployeeNumberOut int 
+EXEC  [dbo].[usp_EmployeeInsert]
+		@EmployeeNumber = N'HR001',
+		@FirstName = N'One',
+		@LastName = N'HR',
+		@DateofBirth = '07/mar/1977',
+		@DepartmentId = 2,
+		@Address = N'Address Address ',
+		@City = N'CityName',
+		@EmployeeNumberOut = @EmployeeNumberOut OUTPUT
+
+ SELECT	@EmployeeNumberOut  
+
+GO
+
+DECLARE	 @EmployeeNumberOut int 
+EXEC  [dbo].[usp_EmployeeInsert]
+		@EmployeeNumber = N'Accounts001',
+		@FirstName = N'Accounts',
+		@LastName = N'Man',
+		@DateofBirth = '07-31-1977',
+		@DepartmentId = 3,
+		@Address = N'Accounts Add',
+		@City = N'Accounts City',
+		@EmployeeNumberOut = @EmployeeNumberOut OUTPUT
+
+ SELECT	@EmployeeNumberOut  
+
+GO
+exec     [dbo].[usp_GetAllEmployeeDet]
